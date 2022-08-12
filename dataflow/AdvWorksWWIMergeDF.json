@@ -47,6 +47,12 @@
 				},
 				{
 					"name": "DerivedProductType"
+				},
+				{
+					"name": "SelectAdvWorksColumns"
+				},
+				{
+					"name": "SelectWWImportersColumns"
 				}
 			],
 			"scriptLines": [
@@ -120,10 +126,28 @@
 				"     in (['S','M','L','XL','XXL','3XL','4XL','5XL','6XL','7XL','XS','XXS'], Size)\r",
 				"     , 'Clothing', 'Product'\r",
 				")) ~> DerivedFinalCostAndProductType",
-				"FilterDiscontinued derive(ItemType = case (\r",
+				"SelectAdvWorksColumns derive(ItemType = case (\r",
 				"     in (['S','M','L','XL'], Size)\r",
 				"     , 'Clothing', 'Product'\r",
 				")) ~> DerivedProductType",
+				"FilterDiscontinued select(mapColumn(",
+				"          Name,",
+				"          Color,",
+				"          Cost = StandardCost,",
+				"          RetailPrice = ListPrice,",
+				"          Size",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectAdvWorksColumns",
+				"DerivedFinalCostAndProductType select(mapColumn(",
+				"          Name = StockItemName,",
+				"          Cost,",
+				"          RetailPrice = RecommendedRetailPrice,",
+				"          Size,",
+				"          ItemType",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectWWImportersColumns",
 				"DerivedProductType sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
@@ -136,7 +160,7 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBProductsSink",
-				"DerivedFinalCostAndProductType sink(allowSchemaDrift: true,",
+				"SelectWWImportersColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
