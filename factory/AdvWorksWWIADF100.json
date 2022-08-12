@@ -1,0 +1,9 @@
+{
+	"name": "AdvWorksWWIADF100",
+	"location": "australiaeast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2ea80d02-7f37-4a91-88b3-d967717110e1",
+		"tenantId": "21910cc4-a37b-4f1e-9e11-4aca40505fae"
+	}
+}
