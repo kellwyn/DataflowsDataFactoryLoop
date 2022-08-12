@@ -63,6 +63,12 @@
 				},
 				{
 					"name": "WWImportersColorsLookup"
+				},
+				{
+					"name": "AdvWorksSplitClothesFromProducts"
+				},
+				{
+					"name": "WWImportersSplitClothesFromProducts"
 				}
 			],
 			"scriptLines": [
@@ -172,7 +178,11 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> WWImportersColorsLookup",
-				"DerivedProductType sink(allowSchemaDrift: true,",
+				"DerivedProductType split(ItemType == 'Product',",
+				"     disjoint: false) ~> AdvWorksSplitClothesFromProducts@(AdvWorksProducts, AdvWorksClothes)",
+				"SelectWWImportersColumns split(ItemType == 'Product',",
+				"     disjoint: false) ~> WWImportersSplitClothesFromProducts@(WWImportersProducts, WWImportersClothes)",
+				"AdvWorksSplitClothesFromProducts@AdvWorksProducts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -184,7 +194,7 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBProductsSink",
-				"SelectWWImportersColumns sink(allowSchemaDrift: true,",
+				"WWImportersSplitClothesFromProducts@WWImportersProducts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
