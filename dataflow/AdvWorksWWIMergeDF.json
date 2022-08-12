@@ -17,6 +17,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "WWimportersDBSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "WWImportersStockItems",
+						"type": "DatasetReference"
+					},
+					"name": "WWImportersColorSource"
 				}
 			],
 			"sinks": [
@@ -53,6 +60,9 @@
 				},
 				{
 					"name": "SelectWWImportersColumns"
+				},
+				{
+					"name": "WWImportersColorsLookup"
 				}
 			],
 			"scriptLines": [
@@ -118,6 +128,15 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> WWimportersDBSource",
+				"source(output(",
+				"          ColorID as integer,",
+				"          asColor as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select ColorID, ColorName asColor from Warehouse.Colors',",
+				"     format: 'query') ~> WWImportersColorSource",
 				"WWimportersDBSource sort(asc(StockItemName, true),",
 				"     caseInsensitive: true) ~> SortByName",
 				"AdvWorksDBSource filter(isNull(SellEndDate)) ~> FilterDiscontinued",
@@ -139,8 +158,9 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelectAdvWorksColumns",
-				"DerivedFinalCostAndProductType select(mapColumn(",
+				"WWImportersColorsLookup select(mapColumn(",
 				"          Name = StockItemName,",
+				"          Color = asColor,",
 				"          Cost,",
 				"          RetailPrice = RecommendedRetailPrice,",
 				"          Size,",
@@ -148,6 +168,10 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelectWWImportersColumns",
+				"DerivedFinalCostAndProductType, WWImportersColorSource lookup(WWimportersDBSource@ColorID == WWImportersColorSource@ColorID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> WWImportersColorsLookup",
 				"DerivedProductType sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
