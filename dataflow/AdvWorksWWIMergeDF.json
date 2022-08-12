@@ -1,0 +1,154 @@
+{
+	"name": "AdvWorksWWIMergeDF",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AdventureWorksProducts",
+						"type": "DatasetReference"
+					},
+					"name": "AdvWorksDBSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "WWImportersStockItems",
+						"type": "DatasetReference"
+					},
+					"name": "WWimportersDBSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MergeDBProducts",
+						"type": "DatasetReference"
+					},
+					"name": "MergeDBProductsSink"
+				},
+				{
+					"dataset": {
+						"referenceName": "MergeDBClothes",
+						"type": "DatasetReference"
+					},
+					"name": "MergeDBClothesSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SortByName"
+				},
+				{
+					"name": "FilterDiscontinued"
+				},
+				{
+					"name": "DerivedFinalCostAndProductType"
+				},
+				{
+					"name": "DerivedProductType"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as integer,",
+				"          Name as string,",
+				"          ProductNumber as string,",
+				"          MakeFlag as boolean,",
+				"          FinishedGoodsFlag as boolean,",
+				"          Color as string,",
+				"          SafetyStockLevel as integer,",
+				"          ReorderPoint as integer,",
+				"          StandardCost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          Size as string,",
+				"          SizeUnitMeasureCode as string,",
+				"          WeightUnitMeasureCode as string,",
+				"          Weight as decimal(8,2),",
+				"          DaysToManufacture as integer,",
+				"          ProductLine as string,",
+				"          Class as string,",
+				"          Style as string,",
+				"          ProductSubcategoryID as integer,",
+				"          ProductModelID as integer,",
+				"          SellStartDate as timestamp,",
+				"          SellEndDate as timestamp,",
+				"          DiscontinuedDate as timestamp,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> AdvWorksDBSource",
+				"source(output(",
+				"          StockItemID as integer,",
+				"          StockItemName as string,",
+				"          SupplierID as integer,",
+				"          ColorID as integer,",
+				"          UnitPackageID as integer,",
+				"          OuterPackageID as integer,",
+				"          Brand as string,",
+				"          Size as string,",
+				"          LeadTimeDays as integer,",
+				"          QuantityPerOuter as integer,",
+				"          IsChillerStock as boolean,",
+				"          Barcode as string,",
+				"          TaxRate as decimal(18,3),",
+				"          UnitPrice as decimal(18,2),",
+				"          RecommendedRetailPrice as decimal(18,2),",
+				"          TypicalWeightPerUnit as decimal(18,3),",
+				"          MarketingComments as string,",
+				"          InternalComments as string,",
+				"          Photo as binary,",
+				"          CustomFields as string,",
+				"          Tags as string,",
+				"          SearchDetails as string,",
+				"          LastEditedBy as integer,",
+				"          ValidFrom as timestamp,",
+				"          ValidTo as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> WWimportersDBSource",
+				"WWimportersDBSource sort(asc(StockItemName, true),",
+				"     caseInsensitive: true) ~> SortByName",
+				"AdvWorksDBSource filter(isNull(SellEndDate)) ~> FilterDiscontinued",
+				"SortByName derive(Cost = UnitPrice*(1+(TaxRate/100)),",
+				"          ItemType = case (\r",
+				"     in (['S','M','L','XL','XXL','3XL','4XL','5XL','6XL','7XL','XS','XXS'], Size)\r",
+				"     , 'Clothing', 'Product'\r",
+				")) ~> DerivedFinalCostAndProductType",
+				"FilterDiscontinued derive(ItemType = case (\r",
+				"     in (['S','M','L','XL'], Size)\r",
+				"     , 'Clothing', 'Product'\r",
+				")) ~> DerivedProductType",
+				"DerivedProductType sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBProductsSink",
+				"DerivedFinalCostAndProductType sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink"
+			]
+		}
+	}
+}
