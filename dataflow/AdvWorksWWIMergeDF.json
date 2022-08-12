@@ -69,6 +69,9 @@
 				},
 				{
 					"name": "WWImportersSplitClothesFromProducts"
+				},
+				{
+					"name": "CheckRepeatedClothes"
 				}
 			],
 			"scriptLines": [
@@ -182,6 +185,9 @@
 				"     disjoint: false) ~> AdvWorksSplitClothesFromProducts@(AdvWorksProducts, AdvWorksClothes)",
 				"SelectWWImportersColumns split(ItemType == 'Product',",
 				"     disjoint: false) ~> WWImportersSplitClothesFromProducts@(WWImportersProducts, WWImportersClothes)",
+				"AdvWorksSplitClothesFromProducts@AdvWorksClothes, WWImportersSplitClothesFromProducts@WWImportersClothes exists(AdvWorksSplitClothesFromProducts@AdvWorksClothes@Name == WWImportersSplitClothesFromProducts@WWImportersClothes@Name,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> CheckRepeatedClothes",
 				"AdvWorksSplitClothesFromProducts@AdvWorksProducts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
