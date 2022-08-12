@@ -11,13 +11,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AdventureWorks'"
 		},
-		"WWImporters_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'WWImporters'"
-		},
 		"MergeDB_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'MergeDB'"
+		},
+		"WWImporters_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'WWImporters'"
 		},
 		"containerUri": {
 			"type": "string",
@@ -49,11 +49,11 @@
 					"AdventureWorks_connectionString": {
 						"value": "[parameters('AdventureWorks_connectionString')]"
 					},
-					"WWImporters_connectionString": {
-						"value": "[parameters('WWImporters_connectionString')]"
-					},
 					"MergeDB_connectionString": {
 						"value": "[parameters('MergeDB_connectionString')]"
+					},
+					"WWImporters_connectionString": {
+						"value": "[parameters('WWImporters_connectionString')]"
 					}
 				}
 			},

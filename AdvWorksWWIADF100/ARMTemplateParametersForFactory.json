@@ -8,10 +8,10 @@
 		"AdventureWorks_connectionString": {
 			"value": ""
 		},
-		"WWImporters_connectionString": {
+		"MergeDB_connectionString": {
 			"value": ""
 		},
-		"MergeDB_connectionString": {
+		"WWImporters_connectionString": {
 			"value": ""
 		}
 	}
