@@ -47,6 +47,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "MergeDBClothesSink"
+				},
+				{
+					"dataset": {
+						"referenceName": "ADvWorksBlobDS",
+						"type": "DatasetReference"
+					},
+					"name": "AdvWorksBlobSink"
 				}
 			],
 			"transformations": [
@@ -91,6 +98,9 @@
 				},
 				{
 					"name": "AggregateByProductModelName"
+				},
+				{
+					"name": "RankByAveragePrice"
 				}
 			],
 			"scriptLines": [
@@ -225,6 +235,10 @@
 				"     broadcast: 'auto')~> JoinModel",
 				"JoinModel aggregate(groupBy(ProductModelName),",
 				"     AverageCost = avg(StandardCost)) ~> AggregateByProductModelName",
+				"AggregateByProductModelName rank(desc(AverageCost, true),",
+				"     caseInsensitive: true,",
+				"     output(Rank as long),",
+				"     dense: true) ~> RankByAveragePrice",
 				"UnionAllProducts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
@@ -248,7 +262,11 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink"
+				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink",
+				"RankByAveragePrice sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> AdvWorksBlobSink"
 			]
 		}
 	}
