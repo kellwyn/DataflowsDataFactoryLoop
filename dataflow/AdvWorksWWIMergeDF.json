@@ -141,6 +141,13 @@
 				},
 				{
 					"name": "PivotEventDates"
+				},
+				{
+					"name": "MapDriftedEventDates",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "UnpivotEventDates"
 				}
 			],
 			"scriptLines": [
@@ -330,6 +337,19 @@
 				"     {} = first(EventTime),",
 				"     columnNaming: '$N$V',",
 				"     lateral: true) ~> PivotEventDates",
+				"PivotEventDates derive(DeliveryAttempt = toDate(byName('DeliveryAttempt')),",
+				"          {Ready for collection} = toDate(byName('Ready for collection'))) ~> MapDriftedEventDates",
+				"MapDriftedEventDates unpivot(output(",
+				"          DeliveryEvent as string,",
+				"          DeliveredWhen as date,",
+				"          DeliveryAttempt as date,",
+				"          {Ready for collection} as date",
+				"     ),",
+				"     ungroupBy(InvoiceID,",
+				"          ReceivedBy,",
+				"          ConNoteCode),",
+				"     lateral: true,",
+				"     ignoreNullPivots: false) ~> UnpivotEventDates",
 				"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
