@@ -265,8 +265,11 @@
 				"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink",
 				"RankByAveragePrice sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     partitionFileNames:['RankByProductModelByCost'],",
+				"     truncate: true,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> AdvWorksBlobSink"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> AdvWorksBlobSink"
 			]
 		}
 	}
