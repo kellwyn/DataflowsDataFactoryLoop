@@ -587,6 +587,18 @@
 						},
 						{
 							"name": "RankByAveragePrice"
+						},
+						{
+							"name": "AddPKClothes"
+						},
+						{
+							"name": "AddPKProducts"
+						},
+						{
+							"name": "AllowOnlyClothingUpserts"
+						},
+						{
+							"name": "AllowOnlyProductUpserts"
 						}
 					],
 					"scriptLines": [
@@ -725,25 +737,33 @@
 						"     caseInsensitive: true,",
 						"     output(Rank as long),",
 						"     dense: true) ~> RankByAveragePrice",
-						"UnionAllProducts sink(allowSchemaDrift: true,",
+						"UnionAllClothes keyGenerate(output(ClothingID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> AddPKClothes",
+						"UnionAllProducts keyGenerate(output(ProductID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> AddPKProducts",
+						"AddPKClothes alterRow(upsertIf(true())) ~> AllowOnlyClothingUpserts",
+						"AddPKProducts alterRow(upsertIf(true())) ~> AllowOnlyProductUpserts",
+						"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
-						"     insertable:true,",
+						"     insertable:false,",
 						"     updateable:false,",
-						"     upsertable:false,",
-						"     recreate:true,",
+						"     upsertable:true,",
+						"     keys:['Name'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 1,",
 						"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBProductsSink",
-						"UnionAllClothes sink(allowSchemaDrift: true,",
+						"AllowOnlyClothingUpserts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
-						"     insertable:true,",
+						"     insertable:false,",
 						"     updateable:false,",
-						"     upsertable:false,",
-						"     recreate:true,",
+						"     upsertable:true,",
+						"     keys:['Name'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
