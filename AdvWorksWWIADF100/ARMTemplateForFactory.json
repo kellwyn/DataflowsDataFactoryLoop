@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AdvWorksWWIADF100"
 		},
+		"AdvWorksBlobLS_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AdvWorksBlobLS'"
+		},
 		"AdventureWorks_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AdventureWorks'"
@@ -53,7 +57,8 @@
 									"WWImportersColorSource": {},
 									"AdvWorksCheckModel": {},
 									"MergeDBProductsSink": {},
-									"MergeDBClothesSink": {}
+									"MergeDBClothesSink": {},
+									"AdvWorksBlobSink": {}
 								}
 							},
 							"staging": {},
@@ -73,6 +78,32 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/AdvWorksWWIMergeDF')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADvWorksBlobDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AdvWorksBlobLS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "advworkswwicontainer"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AdvWorksBlobLS')]"
 			]
 		},
 		{
@@ -400,6 +431,19 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AdvWorksBlobLS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AdvWorksBlobLS_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AdventureWorks')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -489,6 +533,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "MergeDBClothesSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "ADvWorksBlobDS",
+								"type": "DatasetReference"
+							},
+							"name": "AdvWorksBlobSink"
 						}
 					],
 					"transformations": [
@@ -533,6 +584,9 @@
 						},
 						{
 							"name": "AggregateByProductModelName"
+						},
+						{
+							"name": "RankByAveragePrice"
 						}
 					],
 					"scriptLines": [
@@ -667,6 +721,10 @@
 						"     broadcast: 'auto')~> JoinModel",
 						"JoinModel aggregate(groupBy(ProductModelName),",
 						"     AverageCost = avg(StandardCost)) ~> AggregateByProductModelName",
+						"AggregateByProductModelName rank(desc(AverageCost, true),",
+						"     caseInsensitive: true,",
+						"     output(Rank as long),",
+						"     dense: true) ~> RankByAveragePrice",
 						"UnionAllProducts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
@@ -690,7 +748,11 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     saveOrder: 1,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink"
+						"     errorHandlingOption: 'stopOnFirstError') ~> MergeDBClothesSink",
+						"RankByAveragePrice sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> AdvWorksBlobSink"
 					]
 				}
 			},
@@ -698,7 +760,8 @@
 				"[concat(variables('factoryId'), '/datasets/AdventureWorksProducts')]",
 				"[concat(variables('factoryId'), '/datasets/WWImportersStockItems')]",
 				"[concat(variables('factoryId'), '/datasets/MergeDBProducts')]",
-				"[concat(variables('factoryId'), '/datasets/MergeDBClothes')]"
+				"[concat(variables('factoryId'), '/datasets/MergeDBClothes')]",
+				"[concat(variables('factoryId'), '/datasets/ADvWorksBlobDS')]"
 			]
 		}
 	]

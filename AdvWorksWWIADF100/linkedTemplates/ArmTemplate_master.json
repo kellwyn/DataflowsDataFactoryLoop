@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AdvWorksWWIADF100"
 		},
+		"AdvWorksBlobLS_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AdvWorksBlobLS'"
+		},
 		"AdventureWorks_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AdventureWorks'"
@@ -45,6 +49,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"AdvWorksBlobLS_connectionString": {
+						"value": "[parameters('AdvWorksBlobLS_connectionString')]"
 					},
 					"AdventureWorks_connectionString": {
 						"value": "[parameters('AdventureWorks_connectionString')]"

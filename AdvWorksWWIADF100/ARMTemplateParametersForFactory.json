@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "AdvWorksWWIADF100"
 		},
+		"AdvWorksBlobLS_connectionString": {
+			"value": ""
+		},
 		"AdventureWorks_connectionString": {
 			"value": ""
 		},
