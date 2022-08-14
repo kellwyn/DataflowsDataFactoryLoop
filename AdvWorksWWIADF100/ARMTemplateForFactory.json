@@ -599,6 +599,12 @@
 						},
 						{
 							"name": "AllowOnlyProductUpserts"
+						},
+						{
+							"name": "DeriveProfitability"
+						},
+						{
+							"name": "WindowClothes"
 						}
 					],
 					"scriptLines": [
@@ -737,7 +743,7 @@
 						"     caseInsensitive: true,",
 						"     output(Rank as long),",
 						"     dense: true) ~> RankByAveragePrice",
-						"UnionAllClothes keyGenerate(output(ClothingID as long),",
+						"WindowClothes keyGenerate(output(ClothingID as long),",
 						"     startAt: 1L,",
 						"     stepValue: 1L) ~> AddPKClothes",
 						"UnionAllProducts keyGenerate(output(ProductID as long),",
@@ -745,6 +751,10 @@
 						"     stepValue: 1L) ~> AddPKProducts",
 						"AddPKClothes alterRow(upsertIf(true())) ~> AllowOnlyClothingUpserts",
 						"AddPKProducts alterRow(upsertIf(true())) ~> AllowOnlyProductUpserts",
+						"UnionAllClothes derive(Profitability = iif(Cost ==0, toDecimal(0), RetailPrice/Cost)) ~> DeriveProfitability",
+						"DeriveProfitability window(over(Size),",
+						"     desc(Profitability, true),",
+						"     Rank = denseRank()) ~> WindowClothes",
 						"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
