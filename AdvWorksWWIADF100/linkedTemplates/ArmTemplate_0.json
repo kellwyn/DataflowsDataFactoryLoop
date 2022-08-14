@@ -465,6 +465,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "AdvWorksCheckModel"
+						},
+						{
+							"dataset": {
+								"referenceName": "WWImportersStockItems",
+								"type": "DatasetReference"
+							},
+							"name": "WWImportersGetInvoiceEvents"
 						}
 					],
 					"sinks": [
@@ -553,6 +560,15 @@
 						},
 						{
 							"name": "WindowClothes"
+						},
+						{
+							"name": "ParseJsonColumn"
+						},
+						{
+							"name": "FlattenEvents"
+						},
+						{
+							"name": "ParseJsonEvents"
 						}
 					],
 					"scriptLines": [
@@ -636,6 +652,15 @@
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     query: 'Select ProductModelID, Name as ProductModelName from Production.ProductModel',",
 						"     format: 'query') ~> AdvWorksCheckModel",
+						"source(output(",
+						"          InvoiceID as integer,",
+						"          ReturnedDeliveryData as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT InvoiceID, [ReturnedDeliveryData] from [Sales].Invoices',",
+						"     format: 'query') ~> WWImportersGetInvoiceEvents",
 						"WWimportersDBSource sort(asc(StockItemName, true),",
 						"     caseInsensitive: true) ~> SortByName",
 						"AdvWorksDBSource filter(isNull(SellEndDate)) ~> FilterDiscontinued",
@@ -703,6 +728,25 @@
 						"DeriveProfitability window(over(Size),",
 						"     desc(Profitability, true),",
 						"     Rank = denseRank()) ~> WindowClothes",
+						"WWImportersGetInvoiceEvents parse(EventDetail = ReturnedDeliveryData ? (ReceivedBy as string,",
+						"          DeliveredWhen as date,",
+						"          Events as string[]),",
+						"     format: 'json',",
+						"     documentForm: 'singleDocument') ~> ParseJsonColumn",
+						"ParseJsonColumn foldDown(unroll(EventDetail.Events),",
+						"     mapColumn(",
+						"          InvoiceID,",
+						"          ReceivedBy = EventDetail.ReceivedBy,",
+						"          DeliveredWhen = EventDetail.DeliveredWhen,",
+						"          Events = EventDetail.Events",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> FlattenEvents",
+						"FlattenEvents parse(EventDetails = Events ? (Event as string,",
+						"          EventTime as date,",
+						"          ConNote as string),",
+						"     format: 'json',",
+						"     documentForm: 'singleDocument') ~> ParseJsonEvents",
 						"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
@@ -773,6 +817,7 @@
 									"WWimportersDBSource": {},
 									"WWImportersColorSource": {},
 									"AdvWorksCheckModel": {},
+									"WWImportersGetInvoiceEvents": {},
 									"MergeDBProductsSink": {},
 									"MergeDBClothesSink": {},
 									"AdvWorksBlobSink": {}
