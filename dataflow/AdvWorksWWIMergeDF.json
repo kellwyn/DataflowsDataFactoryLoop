@@ -132,6 +132,9 @@
 				},
 				{
 					"name": "FlattenEvents"
+				},
+				{
+					"name": "ParseJsonEvents"
 				}
 			],
 			"scriptLines": [
@@ -305,6 +308,11 @@
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
 				"     skipDuplicateMapOutputs: false) ~> FlattenEvents",
+				"FlattenEvents parse(EventDetails = Events ? (Event as string,",
+				"          EventTime as date,",
+				"          ConNote as string),",
+				"     format: 'json',",
+				"     documentForm: 'singleDocument') ~> ParseJsonEvents",
 				"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
