@@ -135,6 +135,12 @@
 				},
 				{
 					"name": "ParseJsonEvents"
+				},
+				{
+					"name": "DeriveComplexSubcolumns"
+				},
+				{
+					"name": "PivotEventDates"
 				}
 			],
 			"scriptLines": [
@@ -313,6 +319,17 @@
 				"          ConNote as string),",
 				"     format: 'json',",
 				"     documentForm: 'singleDocument') ~> ParseJsonEvents",
+				"ParseJsonEvents derive(EventName = EventDetails.Event,",
+				"          EventTime = EventDetails.EventTime,",
+				"          ConNoteCode = EventDetails.ConNote) ~> DeriveComplexSubcolumns",
+				"DeriveComplexSubcolumns pivot(groupBy(InvoiceID,",
+				"          ReceivedBy,",
+				"          DeliveredWhen,",
+				"          ConNoteCode),",
+				"     pivotBy(EventName),",
+				"     {} = first(EventTime),",
+				"     columnNaming: '$N$V',",
+				"     lateral: true) ~> PivotEventDates",
 				"AllowOnlyProductUpserts sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
