@@ -530,6 +530,9 @@
 						},
 						{
 							"name": "JoinModel"
+						},
+						{
+							"name": "AggregateByProductModelName"
 						}
 					],
 					"scriptLines": [
@@ -606,12 +609,12 @@
 						"     format: 'query') ~> WWImportersColorSource",
 						"source(output(",
 						"          ProductModelID as integer,",
-						"          ProductModelame as string",
+						"          ProductModelName as string",
 						"     ),",
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     query: 'Select ProductModelID, Name as ProductModelame from Production.ProductModel',",
+						"     query: 'Select ProductModelID, Name as ProductModelName from Production.ProductModel',",
 						"     format: 'query') ~> AdvWorksCheckModel",
 						"WWimportersDBSource sort(asc(StockItemName, true),",
 						"     caseInsensitive: true) ~> SortByName",
@@ -662,6 +665,8 @@
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> JoinModel",
+						"JoinModel aggregate(groupBy(ProductModelName),",
+						"     AverageCost = avg(StandardCost)) ~> AggregateByProductModelName",
 						"UnionAllProducts sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
